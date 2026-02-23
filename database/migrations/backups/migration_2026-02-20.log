@@ -1,0 +1,26 @@
+[2026-02-20 15:40:47] [INFO] 开始 Mission Control 数据库迁移
+[2026-02-20 15:40:47] [INFO] 旧数据库: /home/admin/.openclaw/workspace/mission_control.db
+[2026-02-20 15:40:47] [INFO] 新数据库: /home/admin/.openclaw/workspace/mission_control/database/mission_control.db
+[2026-02-20 15:40:47] [INFO] 旧数据库已备份到: /home/admin/.openclaw/workspace/mission_control/database/migrations/backups/mission_control_old_2026-02-20T15-40-47-328Z.db
+[2026-02-20 15:40:47] [INFO] 旧数据库表: tasks, sqlite_sequence, agents, messages, results, system_logs, db_optimization_log, agents_new, messages_archive, task_stats_cache, agent_workload_cache, db_maintenance_log
+[2026-02-20 15:40:47] [WARNING] 缺少关键表: documents
+[2026-02-20 15:40:47] [INFO] 开始迁移任务数据...
+[2026-02-20 15:40:47] [INFO] 找到任务表: tasks
+[2026-02-20 15:40:47] [INFO] 找到 199 个任务
+[2026-02-20 15:40:47] [INFO] 任务迁移完成: 199 个成功
+[2026-02-20 15:40:47] [INFO] 开始迁移消息数据...
+[2026-02-20 15:40:47] [INFO] 找到消息表: messages
+[2026-02-20 15:40:47] [INFO] 找到 100 个消息 (限制100条)
+[2026-02-20 15:40:47] [INFO] 消息迁移完成: 100 个成功
+[2026-02-20 15:40:47] [INFO] 开始迁移系统日志...
+[2026-02-20 15:40:47] [INFO] 找到日志表: system_logs
+[2026-02-20 15:40:47] [INFO] 找到 50 个日志 (限制50条)
+[2026-02-20 15:40:47] [INFO] 系统日志迁移完成: 50 个成功
+[2026-02-20 15:40:47] [INFO] 迁移完成统计:
+[2026-02-20 15:40:47] [INFO]   文档: 0 条
+[2026-02-20 15:40:47] [INFO]   任务: 199 条
+[2026-02-20 15:40:47] [INFO]   消息: 100 条
+[2026-02-20 15:40:47] [INFO]   系统日志: 50 条
+[2026-02-20 15:40:47] [INFO]   总计: 349 条记录迁移
+[2026-02-20 15:40:47] [INFO] 旧数据库已备份到: /home/admin/.openclaw/workspace/mission_control/database/migrations/backups/mission_control_old_2026-02-20T15-40-47-328Z.db
+[2026-02-20 15:40:47] [INFO] 新数据库包含 13 个表
