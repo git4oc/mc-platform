@@ -3,11 +3,11 @@ import { mockAgents } from '../data/mock-data.js';
 import { timeAgo, getStatusBadge, getStatusColor } from '../utils.js';
 
 export function renderAgents(container) {
-    const activeCount = mockAgents.filter(a => a.status === 'active').length;
-    const standbyCount = mockAgents.filter(a => a.status === 'standby').length;
-    const inactiveCount = mockAgents.filter(a => a.status === 'inactive').length;
+  const activeCount = mockAgents.filter(a => a.status === 'active').length;
+  const standbyCount = mockAgents.filter(a => a.status === 'standby').length;
+  const inactiveCount = mockAgents.filter(a => a.status === 'inactive').length;
 
-    container.innerHTML = `
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">智能体管理</h2>
       <p class="page-subtitle">监控所有AI智能体的运行状态 · 共 ${mockAgents.length} 个智能体</p>
@@ -46,31 +46,31 @@ export function renderAgents(container) {
     </div>
   `;
 
-    // 绑定筛选事件
-    container.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const filter = btn.dataset.filter;
-            const cards = container.querySelectorAll('.agent-card');
-            cards.forEach(card => {
-                if (filter === 'all' || card.dataset.status === filter) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
+  // 绑定筛选事件
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      const cards = container.querySelectorAll('.agent-card');
+      cards.forEach(card => {
+        if (filter === 'all' || card.dataset.status === filter) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
     });
+  });
 }
 
 function renderAgentCard(agent) {
-    const status = getStatusBadge(agent.status);
-    const completionRate = agent.tasks.total > 0
-        ? Math.round(agent.tasks.completed / agent.tasks.total * 100)
-        : 0;
+  const status = getStatusBadge(agent.status);
+  const completionRate = agent.tasks.total > 0
+    ? Math.round(agent.tasks.completed / agent.tasks.total * 100)
+    : 0;
 
-    return `
+  return `
     <div class="agent-card" data-status="${agent.status}">
       <div class="agent-header">
         <div class="agent-avatar">${agent.icon}</div>
@@ -88,15 +88,15 @@ function renderAgentCard(agent) {
         </div>
         <div class="meta-item">
           <span class="meta-label">最后心跳</span>
-          <span class="meta-value">${timeAgo(agent.last_heartbeat)}</span>
+          <span class="meta-value agent-num" style="font-size: var(--text-base)">${timeAgo(agent.last_heartbeat)}</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">任务总数</span>
-          <span class="meta-value">${agent.tasks.total}</span>
+          <span class="meta-value agent-num">${agent.tasks.total}</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">完成率</span>
-          <span class="meta-value" style="color: ${completionRate >= 80 ? 'var(--color-success)' : completionRate >= 60 ? 'var(--color-warning)' : 'var(--color-error)'}">${completionRate}%</span>
+          <span class="meta-value agent-num" style="color: ${completionRate >= 80 ? 'var(--color-success)' : completionRate >= 60 ? 'var(--color-warning)' : 'var(--color-error)'}">${completionRate}%</span>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 // 任务管理页面
 import { mockTasks, mockAgents } from '../data/mock-data.js';
 import { timeAgo, formatDate, formatDuration, getStatusBadge, getPriorityBadge, showToast } from '../utils.js';
+import { icon } from '../icons.js';
 
 let currentView = 'kanban';
 
@@ -39,22 +40,27 @@ export function renderTasks(container) {
     <!-- 统计 -->
     <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
       <div class="stat-card" style="--stat-color: var(--color-warning)">
+        <div class="stat-icon" style="background: var(--color-warning-bg); color: var(--color-warning)">${icon('inbox', 24)}</div>
         <div class="stat-value">${statusGroups.pending.length}</div>
         <div class="stat-label">待处理</div>
       </div>
       <div class="stat-card" style="--stat-color: var(--color-accent)">
+        <div class="stat-icon" style="background: var(--color-accent-bg); color: var(--color-accent)">${icon('agents', 24)}</div>
         <div class="stat-value">${statusGroups.assigned.length}</div>
         <div class="stat-label">已分配</div>
       </div>
       <div class="stat-card" style="--stat-color: var(--color-info)">
+        <div class="stat-icon" style="background: var(--color-info-bg); color: var(--color-info)">${icon('refresh', 24)}</div>
         <div class="stat-value">${statusGroups.in_progress.length}</div>
         <div class="stat-label">进行中</div>
       </div>
       <div class="stat-card" style="--stat-color: var(--color-success)">
+        <div class="stat-icon" style="background: var(--color-success-bg); color: var(--color-success)">${icon('check', 24)}</div>
         <div class="stat-value">${statusGroups.completed.length}</div>
         <div class="stat-label">已完成</div>
       </div>
       <div class="stat-card" style="--stat-color: var(--color-error)">
+        <div class="stat-icon" style="background: var(--color-error-bg); color: var(--color-error)">${icon('x', 24)}</div>
         <div class="stat-value">${statusGroups.failed.length}</div>
         <div class="stat-label">失败</div>
       </div>

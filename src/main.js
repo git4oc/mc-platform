@@ -30,15 +30,38 @@ function initSidebar() {
     const toggle = document.getElementById('sidebar-toggle');
     const sidebar = document.getElementById('app-sidebar');
 
-    toggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        localStorage.setItem('mc-sidebar', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+    toggle.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('mobile-open');
+        } else {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('mc-sidebar', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+        }
+        e.stopPropagation(); // 防止触发点击外部关闭的逻辑
     });
 
-    // 恢复侧边栏状态
-    if (localStorage.getItem('mc-sidebar') === 'collapsed') {
+    // 恢复侧边栏状态 (仅限桌面端)
+    if (window.innerWidth > 768 && localStorage.getItem('mc-sidebar') === 'collapsed') {
         sidebar.classList.add('collapsed');
     }
+
+    // 移动端：点击导航项自动收起
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+    });
+
+    // 移动端：点击外部区域自动收起侧边栏
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
+            if (!sidebar.contains(e.target)) {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+    });
 }
 
 // 初始化路由

@@ -4,16 +4,16 @@ import { timeAgo, getStatusBadge, getPriorityBadge, getScoreColor, formatNumber 
 import { icon } from '../icons.js';
 
 export function renderDashboard(container) {
-    const activeAgents = mockAgents.filter(a => a.status === 'active').length;
-    const totalAgents = mockAgents.length;
-    const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
-    const totalTasks = mockTasks.length;
-    const newHotspots = mockHotspots.filter(h => h.status === 'new').length;
-    const totalViews = 2850 + 1560;
-    const totalLikes = 128 + 86;
-    const completionRate = Math.round(completedTasks / totalTasks * 100);
+  const activeAgents = mockAgents.filter(a => a.status === 'active').length;
+  const totalAgents = mockAgents.length;
+  const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
+  const totalTasks = mockTasks.length;
+  const newHotspots = mockHotspots.filter(h => h.status === 'new').length;
+  const totalViews = 2850 + 1560;
+  const totalLikes = 128 + 86;
+  const completionRate = Math.round(completedTasks / totalTasks * 100);
 
-    container.innerHTML = `
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">系统仪表盘</h2>
       <p class="page-subtitle">Mission Control 系统运行概览 · 实时监控中</p>
@@ -47,34 +47,8 @@ export function renderDashboard(container) {
       </div>
     </div>
 
-    <div class="grid-2">
-      <!-- 智能体状态 -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">${icon('agents', 16)} 智能体状态</h3>
-          <a href="#/agents" class="btn btn-sm btn-secondary">查看全部 ${icon('arrowRight', 12)}</a>
-        </div>
-        <div class="card-body">
-          <div class="agent-mini-list">
-            ${mockAgents.map(a => {
-        const status = getStatusBadge(a.status);
-        return `
-              <div class="dash-agent-row">
-                <div class="dash-agent-left">
-                  <span class="dash-agent-icon">${a.icon}</span>
-                  <div class="dash-agent-info">
-                    <span class="dash-agent-name">${a.agent_name}</span>
-                    <span class="dash-agent-time">${timeAgo(a.last_heartbeat)}</span>
-                  </div>
-                </div>
-                <span class="badge ${status.class}">${status.text}</span>
-              </div>`;
-    }).join('')}
-          </div>
-        </div>
-      </div>
-
-      <!-- 最新任务 -->
+    <div class="grid-main-side">
+      <!-- 最新任务 (Main Focus) -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">${icon('tasks', 16)} 最新任务</h3>
@@ -85,24 +59,50 @@ export function renderDashboard(container) {
             <thead><tr><th>任务</th><th>分配给</th><th>优先级</th><th>状态</th></tr></thead>
             <tbody>
               ${mockTasks.slice(0, 5).map(t => {
-        const agent = mockAgents.find(a => a.agent_id === t.assigned_to);
-        const status = getStatusBadge(t.status);
-        const priority = getPriorityBadge(t.priority);
-        return `<tr>
+    const agent = mockAgents.find(a => a.agent_id === t.assigned_to);
+    const status = getStatusBadge(t.status);
+    const priority = getPriorityBadge(t.priority);
+    return `<tr>
                   <td style="color: var(--color-text-primary); font-weight: var(--font-semibold)">${t.title}</td>
                   <td>${agent ? agent.icon + ' ' + agent.agent_name : t.assigned_to}</td>
                   <td><span class="badge ${priority.class}">${priority.text}</span></td>
                   <td><span class="badge ${status.class}">${status.text}</span></td>
                 </tr>`;
-    }).join('')}
+  }).join('')}
             </tbody>
           </table>
         </div>
       </div>
+
+      <!-- 智能体状态 (Side Focus) -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">${icon('agents', 16)} 智能体状态</h3>
+          <a href="#/agents" class="btn btn-sm btn-secondary">查看全部 ${icon('arrowRight', 12)}</a>
+        </div>
+        <div class="card-body">
+          <div class="agent-mini-list">
+            ${mockAgents.map(a => {
+    const status = getStatusBadge(a.status);
+    return `
+              <div class="dash-agent-row">
+                <div class="dash-agent-left">
+                  <span class="dash-agent-icon">${a.icon}</span>
+                  <div class="dash-agent-info">
+                    <span class="dash-agent-name">${a.agent_name}</span>
+                    <span class="dash-agent-time">${timeAgo(a.last_heartbeat)}</span>
+                  </div>
+                </div>
+                <span class="badge ${status.class}">${status.text}</span>
+              </div>`;
+  }).join('')}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid-2" style="margin-top: var(--space-4)">
-      <!-- 热点排行 -->
+    <div class="grid-side-main" style="margin-top: var(--space-4)">
+      <!-- 热点排行 (Side) -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">${icon('hotspot', 16)} 热点排行</h3>
@@ -124,7 +124,7 @@ export function renderDashboard(container) {
         </div>
       </div>
 
-      <!-- 最新消息 -->
+      <!-- 最新消息 (Main) -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">${icon('message', 16)} 最新消息</h3>
@@ -133,13 +133,13 @@ export function renderDashboard(container) {
         <div class="card-body">
           <div class="timeline">
             ${mockMessages.slice(0, 5).map(m => {
-        const typeMap = {
-            'hotspot_report': '提交热点报告',
-            'task_assignment': '分配任务',
-            'task_completion': '完成任务',
-            'analysis_report': '提交分析报告'
-        };
-        return `
+    const typeMap = {
+      'hotspot_report': '提交热点报告',
+      'task_assignment': '分配任务',
+      'task_completion': '完成任务',
+      'analysis_report': '提交分析报告'
+    };
+    return `
               <div class="timeline-item">
                 <div class="timeline-dot">${mockAgents.find(a => a.agent_id === m.sender_agent_id)?.icon || icon('inbox', 16)}</div>
                 <div class="timeline-content">
@@ -148,7 +148,7 @@ export function renderDashboard(container) {
                 </div>
                 <div class="timeline-time">${timeAgo(m.timestamp)}</div>
               </div>`;
-    }).join('')}
+  }).join('')}
           </div>
         </div>
       </div>
@@ -175,19 +175,19 @@ export function renderDashboard(container) {
     </div>
   `;
 
-    addDashboardStyles();
+  addDashboardStyles();
 }
 
 function addDashboardStyles() {
-    if (document.getElementById('dashboard-v2-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'dashboard-v2-styles';
-    style.textContent = `
+  if (document.getElementById('dashboard-v2-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'dashboard-v2-styles';
+  style.textContent = `
     .stat-value-sub {
-      font-size: var(--text-base);
+      font-size: var(--text-lg);
       font-weight: var(--font-normal);
       color: var(--color-text-muted);
-      margin-left: 2px;
+      margin-left: 3px;
     }
     .card-title { display: flex; align-items: center; gap: var(--space-2); }
     .card-title svg { opacity: 0.6; }
@@ -197,43 +197,43 @@ function addDashboardStyles() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-2-5) var(--space-3);
+      padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-md);
       transition: all var(--transition-fast);
     }
     .dash-agent-row:hover { background: var(--color-accent-bg); }
-    .dash-agent-left { display: flex; align-items: center; gap: var(--space-3); }
-    .dash-agent-icon { font-size: 1.15rem; }
+    .dash-agent-left { display: flex; align-items: center; gap: var(--space-4); }
+    .dash-agent-icon { font-size: 1.35rem; }
     .dash-agent-info { display: flex; flex-direction: column; }
     .dash-agent-name {
-      font-size: var(--text-sm);
+      font-size: var(--text-base);
       font-weight: var(--font-semibold);
       color: var(--color-text-primary);
     }
     .dash-agent-time {
-      font-size: 10px;
+      font-size: var(--text-xs);
       color: var(--color-text-muted);
     }
     .dash-hotspot-row {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-3);
+      gap: var(--space-4);
+      padding: var(--space-3-5) var(--space-4);
       border-radius: var(--radius-md);
       transition: all var(--transition-fast);
     }
     .dash-hotspot-row:hover { background: var(--color-accent-bg); }
     .dash-rank {
-      font-size: var(--text-lg);
+      font-size: var(--text-xl);
       font-weight: var(--font-extrabold);
-      width: 28px;
+      width: 32px;
       text-align: center;
       color: var(--color-text-muted);
     }
     .dash-rank.top { color: var(--color-warning); }
     .dash-hotspot-info { flex: 1; min-width: 0; }
     .dash-hotspot-title {
-      font-size: var(--text-sm);
+      font-size: var(--text-base);
       font-weight: var(--font-semibold);
       color: var(--color-text-primary);
       overflow: hidden;
@@ -241,18 +241,18 @@ function addDashboardStyles() {
       white-space: nowrap;
     }
     .dash-hotspot-meta {
-      font-size: 10px;
+      font-size: var(--text-xs);
       color: var(--color-text-muted);
-      margin-top: 2px;
+      margin-top: 3px;
       display: flex;
       align-items: center;
       gap: var(--space-2);
     }
     .dash-score {
-      font-size: var(--text-xl);
+      font-size: var(--text-2xl);
       font-weight: var(--font-extrabold);
       letter-spacing: -0.03em;
     }
   `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
