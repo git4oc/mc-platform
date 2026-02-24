@@ -1944,3 +1944,12 @@ ol {
     opacity: 1;
   }
 }
+
+/* ---- App Footer ---- */
+.app-footer {
+  text-align: center;
+  padding: var(--space-8) 0 var(--space-4);
+  margin-top: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
