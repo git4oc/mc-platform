@@ -1,8 +1,17 @@
 // 智能体管理页面
-import { mockAgents } from '../data/mock-data.js';
+import { getAgents } from '../api.js';
 import { timeAgo, getStatusBadge, getStatusColor } from '../utils.js';
 
-export function renderAgents(container) {
+const agentIcons = {
+  'mission_control': '🎯', 'hotspot_scout': '🔍', 'content_creator': '✍️',
+  'social_manager': '📢', 'tech_specialist': '🔧', 'data_analyst': '📊'
+};
+
+export async function renderAgents(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const mockAgents = await getAgents();
+  mockAgents.forEach(a => { if (!a.icon) a.icon = agentIcons[a.agent_id] || '🤖'; });
+
   const activeCount = mockAgents.filter(a => a.status === 'active').length;
   const standbyCount = mockAgents.filter(a => a.status === 'standby').length;
   const inactiveCount = mockAgents.filter(a => a.status === 'inactive').length;

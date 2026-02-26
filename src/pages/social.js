@@ -1,22 +1,25 @@
 // 社交媒体管理页面
-import { mockSocialPosts, mockArticles } from '../data/mock-data.js';
+import { getSocialPosts, getArticles } from '../api.js';
 import { formatDate, formatNumber, getStatusBadge } from '../utils.js';
 
-export function renderSocial(container) {
-    const published = mockSocialPosts.filter(p => p.status === 'published');
-    const totalViews = published.reduce((s, p) => s + p.views, 0);
-    const totalLikes = published.reduce((s, p) => s + p.likes, 0);
-    const totalShares = published.reduce((s, p) => s + p.shares, 0);
-    const totalComments = published.reduce((s, p) => s + p.comments, 0);
+export async function renderSocial(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const [mockSocialPosts, mockArticles] = await Promise.all([getSocialPosts(), getArticles()]);
 
-    // 按平台分组
-    const platforms = {};
-    mockSocialPosts.forEach(p => {
-        if (!platforms[p.platform]) platforms[p.platform] = [];
-        platforms[p.platform].push(p);
-    });
+  const published = mockSocialPosts.filter(p => p.status === 'published');
+  const totalViews = published.reduce((s, p) => s + p.views, 0);
+  const totalLikes = published.reduce((s, p) => s + p.likes, 0);
+  const totalShares = published.reduce((s, p) => s + p.shares, 0);
+  const totalComments = published.reduce((s, p) => s + p.comments, 0);
 
-    container.innerHTML = `
+  // 按平台分组
+  const platforms = {};
+  mockSocialPosts.forEach(p => {
+    if (!platforms[p.platform]) platforms[p.platform] = [];
+    platforms[p.platform].push(p);
+  });
+
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">社交媒体管理</h2>
       <p class="page-subtitle">社交平台内容发布与互动数据 · 共 ${mockSocialPosts.length} 条发布</p>
@@ -68,9 +71,9 @@ export function renderSocial(container) {
           </thead>
           <tbody>
             ${mockSocialPosts.map(p => {
-        const status = getStatusBadge(p.status);
-        const article = mockArticles.find(a => a.article_id === p.article_id);
-        return `
+    const status = getStatusBadge(p.status);
+    const article = mockArticles.find(a => a.article_id === p.article_id);
+    return `
                 <tr>
                   <td><span class="badge badge-accent">${p.platform}</span></td>
                   <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-primary)">${p.content}</td>
@@ -83,7 +86,7 @@ export function renderSocial(container) {
                   <td style="color: var(--color-warning)">${formatNumber(p.comments)}</td>
                 </tr>
               `;
-    }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -92,10 +95,10 @@ export function renderSocial(container) {
     <!-- 按平台统计 -->
     <div class="grid-${Object.keys(platforms).length}" style="margin-top: var(--space-4);">
       ${Object.entries(platforms).map(([platform, posts]) => {
-        const pubPosts = posts.filter(p => p.status === 'published');
-        const views = pubPosts.reduce((s, p) => s + p.views, 0);
-        const likes = pubPosts.reduce((s, p) => s + p.likes, 0);
-        return `
+    const pubPosts = posts.filter(p => p.status === 'published');
+    const views = pubPosts.reduce((s, p) => s + p.views, 0);
+    const likes = pubPosts.reduce((s, p) => s + p.likes, 0);
+    return `
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">${platform}</h3>
@@ -110,7 +113,7 @@ export function renderSocial(container) {
             </div>
           </div>
         `;
-    }).join('')}
+  }).join('')}
     </div>
   `;
 }

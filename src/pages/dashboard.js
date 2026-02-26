@@ -1,9 +1,24 @@
 // 仪表盘页面
-import { mockAgents, mockTasks, mockHotspots, mockMessages, mockSystemLogs } from '../data/mock-data.js';
+import { getAgents, getTasks, getHotspots, getMessages, getSystemLogs } from '../api.js';
 import { timeAgo, getStatusBadge, getPriorityBadge, getScoreColor, formatNumber } from '../utils.js';
 import { icon } from '../icons.js';
 
-export function renderDashboard(container) {
+// Agent图标映射（API数据中没有icon字段，前端补充）
+const agentIcons = {
+  'mission_control': '🎯', 'hotspot_scout': '🔍', 'content_creator': '✍️',
+  'social_manager': '📢', 'tech_specialist': '🔧', 'data_analyst': '📊'
+};
+
+export async function renderDashboard(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+
+  const [mockAgents, mockTasks, mockHotspots, mockMessages, mockSystemLogs] = await Promise.all([
+    getAgents(), getTasks(), getHotspots(), getMessages(), getSystemLogs()
+  ]);
+
+  // 为API数据补充icon
+  mockAgents.forEach(a => { if (!a.icon) a.icon = agentIcons[a.agent_id] || '🤖'; });
+
   const activeAgents = mockAgents.filter(a => a.status === 'active').length;
   const totalAgents = mockAgents.length;
   const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
@@ -11,7 +26,7 @@ export function renderDashboard(container) {
   const newHotspots = mockHotspots.filter(h => h.status === 'new').length;
   const totalViews = 2850 + 1560;
   const totalLikes = 128 + 86;
-  const completionRate = Math.round(completedTasks / totalTasks * 100);
+  const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
 
   container.innerHTML = `
     <div class="page-header">
@@ -59,12 +74,12 @@ export function renderDashboard(container) {
             <thead><tr><th>任务</th><th>分配给</th><th>优先级</th><th>状态</th></tr></thead>
             <tbody>
               ${mockTasks.slice(0, 5).map(t => {
-    const agent = mockAgents.find(a => a.agent_id === t.assigned_to);
+    const agent = mockAgents.find(a => a.agent_id === (t.agent_id || t.assigned_to));
     const status = getStatusBadge(t.status);
     const priority = getPriorityBadge(t.priority);
     return `<tr>
                   <td style="color: var(--color-text-primary); font-weight: var(--font-semibold)">${t.title}</td>
-                  <td>${agent ? agent.icon + ' ' + agent.agent_name : t.assigned_to}</td>
+                  <td>${agent ? agent.icon + ' ' + agent.agent_name : (t.agent_id || t.assigned_to)}</td>
                   <td><span class="badge ${priority.class}">${priority.text}</span></td>
                   <td><span class="badge ${status.class}">${status.text}</span></td>
                 </tr>`;

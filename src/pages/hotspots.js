@@ -1,15 +1,18 @@
 // 热点监控页面
-import { mockHotspots } from '../data/mock-data.js';
+import { getHotspots } from '../api.js';
 import { timeAgo, getStatusBadge, getScoreColor } from '../utils.js';
 
-export function renderHotspots(container) {
-    const sorted = [...mockHotspots].sort((a, b) => b.total_score - a.total_score);
-    const avgScore = Math.round(sorted.reduce((s, h) => s + h.total_score, 0) / sorted.length);
-    const excellent = sorted.filter(h => h.total_score >= 80).length;
-    const good = sorted.filter(h => h.total_score >= 60 && h.total_score < 80).length;
-    const poor = sorted.filter(h => h.total_score < 60).length;
+export async function renderHotspots(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const mockHotspots = await getHotspots();
 
-    container.innerHTML = `
+  const sorted = [...mockHotspots].sort((a, b) => b.total_score - a.total_score);
+  const avgScore = Math.round(sorted.reduce((s, h) => s + h.total_score, 0) / sorted.length);
+  const excellent = sorted.filter(h => h.total_score >= 80).length;
+  const good = sorted.filter(h => h.total_score >= 60 && h.total_score < 80).length;
+  const poor = sorted.filter(h => h.total_score < 60).length;
+
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">热点监控</h2>
       <p class="page-subtitle">热点发现与评估跟踪 · 共 ${mockHotspots.length} 个热点</p>
@@ -50,31 +53,31 @@ export function renderHotspots(container) {
     </div>
   `;
 
-    // 绑定筛选
-    container.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const filter = btn.dataset.filter;
-            container.querySelectorAll('.hotspot-card').forEach(card => {
-                card.style.display = (filter === 'all' || card.dataset.status === filter) ? '' : 'none';
-            });
-        });
+  // 绑定筛选
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      container.querySelectorAll('.hotspot-card').forEach(card => {
+        card.style.display = (filter === 'all' || card.dataset.status === filter) ? '' : 'none';
+      });
     });
+  });
 
-    addHotspotStyles();
+  addHotspotStyles();
 }
 
 function renderHotspotCard(hotspot) {
-    const status = getStatusBadge(hotspot.status);
-    const scores = [
-        { label: '相关性', value: hotspot.relevance_score, color: 'var(--chart-1)' },
-        { label: '新颖性', value: hotspot.novelty_score, color: 'var(--chart-2)' },
-        { label: '实用性', value: hotspot.practicality_score, color: 'var(--chart-3)' },
-        { label: '受众兴趣', value: hotspot.audience_interest_score, color: 'var(--chart-4)' }
-    ];
+  const status = getStatusBadge(hotspot.status);
+  const scores = [
+    { label: '相关性', value: hotspot.relevance_score, color: 'var(--chart-1)' },
+    { label: '新颖性', value: hotspot.novelty_score, color: 'var(--chart-2)' },
+    { label: '实用性', value: hotspot.practicality_score, color: 'var(--chart-3)' },
+    { label: '受众兴趣', value: hotspot.audience_interest_score, color: 'var(--chart-4)' }
+  ];
 
-    return `
+  return `
     <div class="hotspot-card" data-status="${hotspot.status}">
       <div class="hotspot-header">
         <div>
@@ -108,10 +111,10 @@ function renderHotspotCard(hotspot) {
 }
 
 function addHotspotStyles() {
-    if (document.getElementById('hotspot-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'hotspot-styles';
-    style.textContent = `
+  if (document.getElementById('hotspot-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'hotspot-styles';
+  style.textContent = `
     .hotspot-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -121,5 +124,5 @@ function addHotspotStyles() {
       .hotspot-grid { grid-template-columns: 1fr; }
     }
   `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }

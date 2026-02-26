@@ -1,0 +1,14 @@
+{
+    "pythonVersion": "3.12",
+    "pythonPlatform": "Windows",
+    "venvPath": "D:\\miniforge3\\envs",
+    "venv": "py312",
+    "executionEnvironments": [
+        {
+            "root": "backend",
+            "extraPaths": [
+                "."
+            ]
+        }
+    ]
+}

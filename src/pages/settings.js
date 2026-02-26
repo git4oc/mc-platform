@@ -1,13 +1,22 @@
 // 系统设置页面
-import { mockSystemConfig, mockAgents } from '../data/mock-data.js';
+import { getSystemConfig, getAgents } from '../api.js';
 
-export function renderSettings(container) {
-    // 分组配置
-    const basicConfig = mockSystemConfig.filter(c => ['system_name', 'system_version', 'system_mode', 'protocol_version', 'timezone', 'database_version'].includes(c.config_key));
-    const runtimeConfig = mockSystemConfig.filter(c => ['max_concurrent_tasks', 'agent_health_check_interval', 'task_timeout_hours', 'total_agents'].includes(c.config_key));
-    const featureConfig = mockSystemConfig.filter(c => ['backup_enabled', 'notification_enabled'].includes(c.config_key));
+const agentIcons = {
+  'mission_control': '🎯', 'hotspot_scout': '🔍', 'content_creator': '✍️',
+  'social_manager': '📢', 'tech_specialist': '🔧', 'data_analyst': '📊'
+};
 
-    container.innerHTML = `
+export async function renderSettings(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const [mockSystemConfig, mockAgents] = await Promise.all([getSystemConfig(), getAgents()]);
+  mockAgents.forEach(a => { if (!a.icon) a.icon = agentIcons[a.agent_id] || '🤖'; });
+
+  // 分组配置
+  const basicConfig = mockSystemConfig.filter(c => ['system_name', 'system_version', 'system_mode', 'protocol_version', 'timezone', 'database_version'].includes(c.config_key));
+  const runtimeConfig = mockSystemConfig.filter(c => ['max_concurrent_tasks', 'agent_health_check_interval', 'task_timeout_hours', 'total_agents'].includes(c.config_key));
+  const featureConfig = mockSystemConfig.filter(c => ['backup_enabled', 'notification_enabled'].includes(c.config_key));
+
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">系统设置</h2>
       <p class="page-subtitle">系统配置与参数管理</p>

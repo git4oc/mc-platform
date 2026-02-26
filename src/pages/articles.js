@@ -1,13 +1,16 @@
 // 内容管理页面
-import { mockArticles, mockHotspots } from '../data/mock-data.js';
+import { getArticles } from '../api.js';
 import { formatDate, getStatusBadge, getScoreColor, copyToClipboard, markdownToHtml, escapeHtml, showToast } from '../utils.js';
 
 let selectedArticle = null;
 
-export function renderArticles(container) {
+export async function renderArticles(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const mockArticles = await getArticles();
+
   const published = mockArticles.filter(a => a.status === 'published').length;
   const drafts = mockArticles.filter(a => a.status === 'draft').length;
-  const avgScore = Math.round(mockArticles.reduce((s, a) => s + a.overall_score, 0) / mockArticles.length);
+  const avgScore = mockArticles.length > 0 ? Math.round(mockArticles.reduce((s, a) => s + (a.overall_score || 0), 0) / mockArticles.length) : 0;
 
   container.innerHTML = `
     <div class="page-header">

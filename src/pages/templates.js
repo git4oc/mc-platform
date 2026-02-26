@@ -1,19 +1,24 @@
 // 模板管理页面 — 内嵌式编辑（无弹窗）
-import { mockTemplates } from '../data/mock-data.js';
+import { getTemplates } from '../api.js';
 import { timeAgo, getStatusBadge, copyToClipboard, escapeHtml, showToast } from '../utils.js';
 import { icon } from '../icons.js';
 
 let selectedTemplate = null;
 let editingTemplate = null; // 当前编辑中的模板 ID 或 'new'
+let cachedTemplates = []; // 缓存模板数据供内部函数使用
 
 // 平台配置
 const platformOptions = ['微信公众号', '知乎', '头条号', '小红书', '通用', 'B站', '抖音'];
 const categoryOptions = ['行业分析', '技术教程', '新闻速报', '案例研究', '观点评论', '产品评测', '生活分享'];
 const toneOptions = ['专业严谨', '通俗易懂', '轻松活泼', '犀利深刻', '温暖治愈'];
 
-export function renderTemplates(container) {
+export async function renderTemplates(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const mockTemplates = await getTemplates();
+  cachedTemplates = mockTemplates;
+
   const activeCount = mockTemplates.filter(t => t.status === 'active').length;
-  const totalUsage = mockTemplates.reduce((s, t) => s + t.usage_count, 0);
+  const totalUsage = mockTemplates.reduce((s, t) => s + (t.usage_count || 0), 0);
   const platforms = [...new Set(mockTemplates.map(t => t.platform))];
 
   container.innerHTML = `
@@ -126,7 +131,7 @@ function renderPreviewPanel() {
     `;
   }
 
-  const tpl = mockTemplates.find(t => t.template_id === selectedTemplate);
+  const tpl = cachedTemplates.find(t => t.template_id === selectedTemplate);
   if (!tpl) return '';
 
   return `
@@ -166,7 +171,7 @@ function renderPreviewPanel() {
 
 function renderEditPanel(editId) {
   const isNew = editId === 'new';
-  const tpl = isNew ? null : mockTemplates.find(t => t.template_id === editId);
+  const tpl = isNew ? null : cachedTemplates.find(t => t.template_id === editId);
 
   return `
     <div class="card tpl-edit-card">
@@ -291,12 +296,12 @@ function bindPreviewButtons(container) {
   }
   if (deleteBtn && selectedTemplate) {
     deleteBtn.addEventListener('click', () => {
-      const tpl = mockTemplates.find(t => t.template_id === selectedTemplate);
+      const tpl = cachedTemplates.find(t => t.template_id === selectedTemplate);
       if (!tpl) return;
       if (!confirm(`确定要删除模板「${tpl.name}」吗？`)) return;
-      const idx = mockTemplates.findIndex(t => t.template_id === tpl.template_id);
+      const idx = cachedTemplates.findIndex(t => t.template_id === tpl.template_id);
       if (idx > -1) {
-        mockTemplates.splice(idx, 1);
+        cachedTemplates.splice(idx, 1);
         selectedTemplate = null;
         editingTemplate = null;
         showToast(`模板「${tpl.name}」已删除`, 'success');
@@ -305,7 +310,7 @@ function bindPreviewButtons(container) {
     });
   }
   if (copyBtn && selectedTemplate) {
-    const tpl = mockTemplates.find(t => t.template_id === selectedTemplate);
+    const tpl = cachedTemplates.find(t => t.template_id === selectedTemplate);
     if (tpl) copyBtn.addEventListener('click', () => copyToClipboard(tpl.prompt));
   }
 }
@@ -339,8 +344,8 @@ function bindEditButtons(container) {
       const now = new Date().toISOString();
 
       if (editingTemplate === 'new') {
-        const newId = `tpl_${String(mockTemplates.length + 1).padStart(3, '0')}`;
-        mockTemplates.push({
+        const newId = `tpl_${String(cachedTemplates.length + 1).padStart(3, '0')}`;
+        cachedTemplates.push({
           template_id: newId, name, platform, category, prompt, variables,
           target_length: targetLength, tone, status, usage_count: 0,
           last_used_at: now, created_at: now, updated_at: now
@@ -348,7 +353,7 @@ function bindEditButtons(container) {
         selectedTemplate = newId;
         showToast(`模板「${name}」已创建`, 'success');
       } else {
-        const tpl = mockTemplates.find(t => t.template_id === editingTemplate);
+        const tpl = cachedTemplates.find(t => t.template_id === editingTemplate);
         if (tpl) {
           Object.assign(tpl, { name, platform, category, tone, target_length: targetLength, status, variables, prompt, updated_at: now });
           showToast(`模板「${name}」已更新`, 'success');

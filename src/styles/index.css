@@ -1953,3 +1953,190 @@ ol {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
+
+/* ---- 页面加载状态 ---- */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-16) 0;
+  font-size: var(--text-base);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-medium);
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Header 用户信息 ---- */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-border);
+}
+
+.user-name {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+/* ---- 登录页面 ---- */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  background-image: var(--color-bg-glow);
+  padding: var(--space-4);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10) var(--space-8);
+  box-shadow: var(--shadow-xl);
+  animation: pageEnter 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.login-brand-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-3);
+  filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.3));
+}
+
+.login-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  letter-spacing: -0.02em;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: var(--space-2);
+}
+
+.login-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.login-field label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.login-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.login-input-wrapper:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-bg);
+}
+
+.login-input-wrapper svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.login-input-wrapper input {
+  flex: 1;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+}
+
+.login-input-wrapper input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.login-error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.login-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  background: var(--gradient-accent);
+  color: white;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  margin-top: var(--space-2);
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: var(--space-6);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

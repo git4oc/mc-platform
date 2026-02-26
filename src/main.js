@@ -1,5 +1,6 @@
 // Mission Control 可视化管理平台 - 主入口
 import { Router } from './router.js';
+import { renderLogin } from './pages/login.js';
 import { renderDashboard } from './pages/dashboard.js';
 import { renderAgents } from './pages/agents.js';
 import { renderTasks } from './pages/tasks.js';
@@ -10,6 +11,7 @@ import { renderSocial } from './pages/social.js';
 import { renderMessages } from './pages/messages.js';
 import { renderMonitoring } from './pages/monitoring.js';
 import { renderSettings } from './pages/settings.js';
+import { logout, getCurrentUser, isLoggedIn } from './api.js';
 
 // 初始化主题
 function initTheme() {
@@ -69,6 +71,7 @@ function initRouter() {
     const router = new Router();
 
     router
+        .register('/login', renderLogin)
         .register('/dashboard', renderDashboard)
         .register('/agents', renderAgents)
         .register('/tasks', renderTasks)
@@ -83,9 +86,28 @@ function initRouter() {
     router.start();
 }
 
+// 初始化用户信息显示 和 登出按钮
+function initUserControls() {
+    // 登出按钮
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('确定要退出登录吗？')) logout();
+        });
+    }
+    // 显示当前用户
+    const user = getCurrentUser();
+    const userNameEl = document.getElementById('current-user-name');
+    if (userNameEl && user) {
+        userNameEl.textContent = user.display_name || user.username || '';
+    }
+}
+
 // 应用初始化
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initSidebar();
+    initUserControls();
     initRouter();
 });

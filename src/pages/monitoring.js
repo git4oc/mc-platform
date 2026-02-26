@@ -1,17 +1,22 @@
 // 系统监控页面
-import { mockSystemLogs } from '../data/mock-data.js';
+import { getSystemLogs } from '../api.js';
 import { timeAgo, formatDate } from '../utils.js';
 
 let activeTab = 'logs';
+let cachedLogs = []; // 缓存日志数据供tab切换使用
 
-export function renderMonitoring(container) {
-    const logCounts = {
-        info: mockSystemLogs.filter(l => l.level === 'info').length,
-        warning: mockSystemLogs.filter(l => l.level === 'warning').length,
-        error: mockSystemLogs.filter(l => l.level === 'error').length
-    };
+export async function renderMonitoring(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const mockSystemLogs = await getSystemLogs();
+  cachedLogs = mockSystemLogs;
 
-    container.innerHTML = `
+  const logCounts = {
+    info: mockSystemLogs.filter(l => (l.log_level || l.level) === 'info').length,
+    warning: mockSystemLogs.filter(l => (l.log_level || l.level) === 'warning').length,
+    error: mockSystemLogs.filter(l => (l.log_level || l.level) === 'error').length
+  };
+
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">系统监控</h2>
       <p class="page-subtitle">系统运行状态、日志与性能监控</p>
@@ -51,29 +56,29 @@ export function renderMonitoring(container) {
     </div>
   `;
 
-    // Tab切换
-    container.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            activeTab = tab.dataset.tab;
-            renderMonitoring(container);
-        });
+  // Tab切换
+  container.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      activeTab = tab.dataset.tab;
+      renderMonitoring(container);
     });
+  });
 
-    // 日志级别筛选
-    container.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const filter = btn.dataset.filter;
-            container.querySelectorAll('.log-item').forEach(item => {
-                item.style.display = (filter === 'all' || item.dataset.level === filter) ? '' : 'none';
-            });
-        });
+  // 日志级别筛选
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      container.querySelectorAll('.log-item').forEach(item => {
+        item.style.display = (filter === 'all' || item.dataset.level === filter) ? '' : 'none';
+      });
     });
+  });
 }
 
 function renderLogsTab() {
-    return `
+  return `
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">系统日志</h3>
@@ -86,9 +91,9 @@ function renderLogsTab() {
       </div>
       <div class="card-body">
         <div class="log-list">
-          ${mockSystemLogs.map(l => `
-            <div class="log-item" data-level="${l.level}">
-              <span class="log-level ${l.level}">${l.level}</span>
+          ${cachedLogs.map(l => `
+            <div class="log-item" data-level="${l.log_level || l.level}">
+              <span class="log-level ${l.log_level || l.level}">${(l.log_level || l.level).toUpperCase()}</span>
               <span class="log-time">${formatDate(l.timestamp)}</span>
               <span class="log-agent">[${l.agent_id}]</span>
               <span style="font-size: var(--text-xs); color: var(--color-text-muted)">${l.component}</span>
@@ -102,13 +107,13 @@ function renderLogsTab() {
 }
 
 function renderMaintenanceTab() {
-    const records = [
-        { type: '数据库优化', title: '运行VACUUM和索引重建', performed_by: 'tech_specialist', status: 'completed', duration: 120, time: new Date(Date.now() - 2 * 86400000).toISOString() },
-        { type: '日志清理', title: '清理30天前的系统日志', performed_by: 'tech_specialist', status: 'completed', duration: 45, time: new Date(Date.now() - 5 * 86400000).toISOString() },
-        { type: '系统检查', title: '全面系统健康检查', performed_by: 'tech_specialist', status: 'completed', duration: 300, time: new Date(Date.now() - 7 * 86400000).toISOString() }
-    ];
+  const records = [
+    { type: '数据库优化', title: '运行VACUUM和索引重建', performed_by: 'tech_specialist', status: 'completed', duration: 120, time: new Date(Date.now() - 2 * 86400000).toISOString() },
+    { type: '日志清理', title: '清理30天前的系统日志', performed_by: 'tech_specialist', status: 'completed', duration: 45, time: new Date(Date.now() - 5 * 86400000).toISOString() },
+    { type: '系统检查', title: '全面系统健康检查', performed_by: 'tech_specialist', status: 'completed', duration: 300, time: new Date(Date.now() - 7 * 86400000).toISOString() }
+  ];
 
-    return `
+  return `
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">维护记录</h3>
@@ -137,13 +142,13 @@ function renderMaintenanceTab() {
 }
 
 function renderBackupTab() {
-    const backups = [
-        { type: 'full', filename: 'mission_control_full_20260221.db', size: '1.3 MB', verified: true, time: new Date(Date.now() - 86400000).toISOString() },
-        { type: 'incremental', filename: 'mission_control_incr_20260220.db', size: '256 KB', verified: true, time: new Date(Date.now() - 2 * 86400000).toISOString() },
-        { type: 'full', filename: 'mission_control_full_20260214.db', size: '1.1 MB', verified: true, time: new Date(Date.now() - 8 * 86400000).toISOString() }
-    ];
+  const backups = [
+    { type: 'full', filename: 'mission_control_full_20260221.db', size: '1.3 MB', verified: true, time: new Date(Date.now() - 86400000).toISOString() },
+    { type: 'incremental', filename: 'mission_control_incr_20260220.db', size: '256 KB', verified: true, time: new Date(Date.now() - 2 * 86400000).toISOString() },
+    { type: 'full', filename: 'mission_control_full_20260214.db', size: '1.1 MB', verified: true, time: new Date(Date.now() - 8 * 86400000).toISOString() }
+  ];
 
-    return `
+  return `
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">备份记录</h3>

@@ -1,9 +1,11 @@
 // 任务管理页面
-import { mockTasks, mockAgents } from '../data/mock-data.js';
+import { getTasks, getAgents, createTask } from '../api.js';
 import { timeAgo, formatDate, formatDuration, getStatusBadge, getPriorityBadge, showToast } from '../utils.js';
 import { icon } from '../icons.js';
 
 let currentView = 'kanban';
+let cachedTasks = [];
+let cachedAgents = [];
 
 // 任务类型映射
 const taskTypes = {
@@ -14,7 +16,18 @@ const taskTypes = {
   'tech_maintenance': '技术维护'
 };
 
-export function renderTasks(container) {
+const agentIcons = {
+  'mission_control': '🎯', 'hotspot_scout': '🔍', 'content_creator': '✍️',
+  'social_manager': '📢', 'tech_specialist': '🔧', 'data_analyst': '📊'
+};
+
+export async function renderTasks(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const [mockTasks, mockAgents] = await Promise.all([getTasks(), getAgents()]);
+  mockAgents.forEach(a => { if (!a.icon) a.icon = agentIcons[a.agent_id] || '🤖'; });
+  cachedTasks = mockTasks;
+  cachedAgents = mockAgents;
+
   const statusGroups = {
     pending: mockTasks.filter(t => t.status === 'pending'),
     assigned: mockTasks.filter(t => t.status === 'assigned'),
@@ -178,7 +191,7 @@ export function renderTasks(container) {
   setDefaultDeadline();
 
   // 提交任务给 Mission Control
-  document.getElementById('task-save-btn').addEventListener('click', () => {
+  document.getElementById('task-save-btn').addEventListener('click', async () => {
     const title = document.getElementById('task-title').value.trim();
     const description = document.getElementById('task-desc').value.trim();
     const priority = document.getElementById('task-priority').value;
@@ -186,30 +199,29 @@ export function renderTasks(container) {
 
     if (!title) { showToast('请填写任务目标', 'warning'); return; }
 
-    // 生成任务ID
-    const now = new Date();
-    const ts = now.toISOString().replace(/[-T:\.Z]/g, '').slice(0, 14);
-    const taskId = `task_${ts}_${String(mockTasks.length + 1).padStart(3, '0')}`;
-
-    const newTask = {
-      task_id: taskId,
-      task_type: 'general',
-      title,
-      description: description || `用户通过管理平台提交的任务`,
-      assigned_to: 'mission_control',
-      assigned_by: 'user',
-      status: 'pending',
-      priority,
-      deadline: deadline ? deadline.replace('T', ' ') + ':00' : null,
-      created_at: now.toISOString(),
-      estimated_duration: null,
-      actual_duration: null
-    };
-
-    // 插入到 mock 数据（前端模拟）
-    mockTasks.unshift(newTask);
-
-    showToast(`任务「${title}」已提交给 Mission Control，将自动规划分配`, 'success');
+    try {
+      await createTask({
+        title,
+        description: description || '用户通过管理平台提交的任务',
+        priority,
+        deadline: deadline ? deadline.replace('T', ' ') + ':00' : null
+      });
+      showToast(`任务「${title}」已提交给 Mission Control，将自动规划分配`, 'success');
+    } catch (err) {
+      // API 失败时本地模拟
+      const now = new Date();
+      const ts = now.toISOString().replace(/[-T:\.Z]/g, '').slice(0, 14);
+      cachedTasks.unshift({
+        task_id: `task_${ts}_${String(cachedTasks.length + 1).padStart(3, '0')}`,
+        task_type: 'general', title,
+        description: description || '用户通过管理平台提交的任务',
+        agent_id: 'mission_control',
+        status: 'pending', priority,
+        deadline: deadline ? deadline.replace('T', ' ') + ':00' : null,
+        created_at: now.toISOString()
+      });
+      showToast(`任务「${title}」已提交（本地模式）`, 'success');
+    }
     renderTasks(container);
   });
 
@@ -235,13 +247,13 @@ function renderKanbanView(groups) {
           </div>
           <div class="kanban-cards">
             ${(groups[col.key] || []).map(t => {
-    const agent = mockAgents.find(a => a.agent_id === t.assigned_to);
+    const agent = cachedAgents.find(a => a.agent_id === (t.agent_id || t.assigned_to));
     const priority = getPriorityBadge(t.priority);
     return `
                 <div class="kanban-card">
                   <div class="kanban-card-title">${t.title}</div>
                   <div class="kanban-card-meta">
-                    <span class="kanban-card-agent">${agent ? agent.icon + ' ' + agent.agent_name : t.assigned_to}</span>
+                    <span class="kanban-card-agent">${agent ? agent.icon + ' ' + agent.agent_name : (t.agent_id || t.assigned_to)}</span>
                     <span class="badge ${priority.class}">${priority.text}</span>
                   </div>
                   ${t.deadline ? `<div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-2)">截止: ${formatDate(t.deadline)}</div>` : ''}
@@ -272,16 +284,16 @@ function renderListView() {
           </tr>
         </thead>
         <tbody>
-          ${mockTasks.map(t => {
-    const agent = mockAgents.find(a => a.agent_id === t.assigned_to);
+          ${cachedTasks.map(t => {
+    const agent = cachedAgents.find(a => a.agent_id === (t.agent_id || t.assigned_to));
     const status = getStatusBadge(t.status);
     const priority = getPriorityBadge(t.priority);
     return `
               <tr>
                 <td style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted)">${t.task_id}</td>
                 <td style="color: var(--color-text-primary); font-weight: 500">${t.title}</td>
-                <td>${taskTypes[t.task_type] || t.task_type}</td>
-                <td>${agent ? agent.icon + ' ' + agent.agent_name : t.assigned_to}</td>
+                <td>${taskTypes[t.task_type] || t.task_type || '-'}</td>
+                <td>${agent ? agent.icon + ' ' + agent.agent_name : (t.agent_id || t.assigned_to)}</td>
                 <td><span class="badge ${priority.class}">${priority.text}</span></td>
                 <td><span class="badge ${status.class}">${status.text}</span></td>
                 <td style="font-size: var(--text-xs)">${t.deadline ? formatDate(t.deadline) : '-'}</td>

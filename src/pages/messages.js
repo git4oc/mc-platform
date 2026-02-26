@@ -1,21 +1,30 @@
 // 消息中心页面
-import { mockMessages, mockAgents } from '../data/mock-data.js';
+import { getMessages, getAgents } from '../api.js';
 import { timeAgo, formatDate, getStatusBadge, getPriorityBadge, escapeHtml } from '../utils.js';
 
-export function renderMessages(container) {
-    const processed = mockMessages.filter(m => m.status === 'processed').length;
-    const pending = mockMessages.filter(m => m.status === 'pending').length;
+const agentIcons = {
+  'mission_control': '🎯', 'hotspot_scout': '🔍', 'content_creator': '✍️',
+  'social_manager': '📢', 'tech_specialist': '🔧', 'data_analyst': '📊'
+};
 
-    // 消息类型映射
-    const typeNames = {
-        'hotspot_report': '热点报告',
-        'task_assignment': '任务分配',
-        'task_completion': '任务完成',
-        'analysis_report': '分析报告',
-        'status_update': '状态更新'
-    };
+export async function renderMessages(container) {
+  container.innerHTML = `<div class="page-loading"><span class="loading-spinner"></span> 加载中...</div>`;
+  const [mockMessages, mockAgents] = await Promise.all([getMessages(), getAgents()]);
+  mockAgents.forEach(a => { if (!a.icon) a.icon = agentIcons[a.agent_id] || '🤖'; });
 
-    container.innerHTML = `
+  const processed = mockMessages.filter(m => m.status === 'processed').length;
+  const pending = mockMessages.filter(m => m.status === 'pending').length;
+
+  // 消息类型映射
+  const typeNames = {
+    'hotspot_report': '热点报告',
+    'task_assignment': '任务分配',
+    'task_completion': '任务完成',
+    'analysis_report': '分析报告',
+    'status_update': '状态更新'
+  };
+
+  container.innerHTML = `
     <div class="page-header">
       <h2 class="page-title">消息中心</h2>
       <p class="page-subtitle">智能体间集中式通信记录 · 共 ${mockMessages.length} 条消息</p>
@@ -50,12 +59,12 @@ export function renderMessages(container) {
       <div class="card-body">
         <div class="message-list" id="message-list">
           ${mockMessages.map(m => {
-        const senderAgent = mockAgents.find(a => a.agent_id === m.sender_agent_id);
-        const receiverAgent = mockAgents.find(a => a.agent_id === m.receiver_agent_id);
-        const status = getStatusBadge(m.status);
-        const priority = getPriorityBadge(m.priority);
+    const senderAgent = mockAgents.find(a => a.agent_id === m.sender_agent_id);
+    const receiverAgent = mockAgents.find(a => a.agent_id === m.receiver_agent_id);
+    const status = getStatusBadge(m.status);
+    const priority = getPriorityBadge(m.priority);
 
-        return `
+    return `
               <div class="message-item" data-status="${m.status}">
                 <div class="message-header">
                   <div class="message-route">
@@ -82,32 +91,32 @@ export function renderMessages(container) {
                 </div>
               </div>
             `;
-    }).join('')}
+  }).join('')}
         </div>
       </div>
     </div>
   `;
 
-    // 筛选绑定
-    container.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const filter = btn.dataset.filter;
-            container.querySelectorAll('.message-item').forEach(item => {
-                item.style.display = (filter === 'all' || item.dataset.status === filter) ? '' : 'none';
-            });
-        });
+  // 筛选绑定
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      container.querySelectorAll('.message-item').forEach(item => {
+        item.style.display = (filter === 'all' || item.dataset.status === filter) ? '' : 'none';
+      });
     });
+  });
 
-    addMessageStyles();
+  addMessageStyles();
 }
 
 function addMessageStyles() {
-    if (document.getElementById('message-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'message-styles';
-    style.textContent = `
+  if (document.getElementById('message-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'message-styles';
+  style.textContent = `
     .message-list { display: flex; flex-direction: column; gap: var(--space-3); }
     .message-item {
       padding: var(--space-4); border: 1px solid var(--color-border-light);
@@ -129,5 +138,5 @@ function addMessageStyles() {
     .payload-label { color: var(--color-text-tertiary); margin-right: var(--space-2); }
     .message-meta-row { display: flex; align-items: center; gap: var(--space-3); }
   `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
